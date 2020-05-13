@@ -1,4 +1,6 @@
 from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
 import numpy as n
 from sklearn.cluster import KMeans
 import os
@@ -28,12 +30,15 @@ class KMeansCompressor:
 
 
 def concatenate(path):
-    result = Image.open(path)
+    source = Image.open(path)
     img_name = re.match(r'(.+)\.', path).group(1)
-    img = Image.new('RGB', (result.size[0] * 3, result.size[1] * 2))
+    img = Image.new('RGB', (source.size[0] * 3, source.size[1] * 2))
     for p in range(6):
         c_img = Image.open(f'compressed/{img_name}_compressed{2**p + 1}.png')
-        img.paste(c_img, ((p % 3) * result.size[0], (p // 3) * result.size[1]))
+        drawer = ImageDraw.Draw(c_img)
+        font = ImageFont.truetype("arial.ttf", source.size[0] // 10)
+        drawer.text((0, 0), f'k = {2 ** p}', (255, 255, 255), font=font)
+        img.paste(c_img, ((p % 3) * source.size[0], (p // 3) * source.size[1]))
     img.save('different_k.png')
 
 
@@ -50,3 +55,5 @@ def main(path):
     concatenate(path)
     for x in os.listdir('compressed'):
         os.remove(f'compressed/{x}')
+
+main('Georg.png')
